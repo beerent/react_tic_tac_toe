@@ -2,33 +2,91 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-class Square extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: null,
-    }
-  }
-
-  render() {
-    return (
-      <button
-        className="square" 
-        onClick={() => {this.setState({value: 'X'})}}
-      >
-        {this.state.value}
-      </button>
-    );
-  }
+function Square(props) {
+  return (
+    <button className="square" onClick={props.onClick}>
+      {props.value}
+    </button>
+  );
 }
 
 class Board extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      squares: Array(9).fill(null),
+      xIsNext: true
+    };
+  }
+
+  handleClick(i) {
+    const squares = this.state.squares.slice();
+    if (squares[i]) {
+      return;
+    }
+    
+    squares[i] = this.getNextPlayer();
+    
+    this.setState({
+      squares: squares,
+      xIsNext: !this.state.xIsNext,
+    });
+  }
+
   renderSquare(i) {
-    return <Square value={i}/>;
+    return (
+      <Square value={this.state.squares[i]}
+              onClick={() => this.handleClick(i)}
+      />
+    )
+  }
+
+  getNextPlayer() {
+    return this.state.xIsNext ? 'X' : 'O';
+  }
+
+  getWinner() {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      let pos1 = this.state.squares[line[0]];
+      let pos2 = this.state.squares[line[1]];
+      let pos3 = this.state.squares[line[2]];
+
+
+      if (pos1 !== pos2 || pos2 !== pos3) {
+        continue;
+      }
+
+      if (!pos1) {
+        continue;
+      }
+
+      return pos1;
+    }
+
+    return null;
   }
 
   render() {
-    const status = 'Next player: X';
+    let status;
+
+    const winner = this.getWinner(this.state.squares);
+    if (winner) {
+      status = "Winner: " + winner;
+    } else {
+      status = 'Next player: ' + this.getNextPlayer();
+    }
 
     return (
       <div>
